@@ -32,11 +32,13 @@ xy <- input_df %>%
   dplyr::select(x,y)
 
 input_value <- input_df %>% 
-  drop_na() %>% 
+  drop_na()
+input_pca<- input_value %>%
+  dplyr::select(-c(x,y)) %>% 
   scale(center = TRUE)
-
 matrix_cor <- input_value %>%
   dplyr::select(-c(x,y)) %>% 
+  scale(center = TRUE) %>% 
   cor()
 
 # (measure of sampling adequacy, MSA >=7)
@@ -49,17 +51,17 @@ ggcorrplot(corr = matrix_cor,
            lab_col = 'white')
 
 # 3.PCA -------------------------------------------------------------------
-new_pca <- prcomp(input_value,center = FALSE)
+new_pca <- prcomp(input_pca,center = FALSE)
 summary(new_pca)
-# Kaiser criterion var > 80%
-componentes <- newpca$x[,1:4]
+  # Kaiser criterion var > 80%
+componentes <- new_pca$x[,1:4]
 
-dataset_pcs <- cbind(input_value,san_diego$x[,1:3])
+dataset_pca <- cbind(input_value,new_pca$x[,1:4])
 img_pca <- xy %>%
-  left_join(y = input_value,by = c('y','x'))
+  left_join(y = dataset_pca,by = c('y','x'))
 
 newraster <- img_pca %>%
-  dplyr::select(x, y, PC1, PC2, PC3)
+  dplyr::select(x, y, `PC1`, `PC2`, `PC3`, `PC4`)
 
 img_crs  <- crs(input)
 img_res <- res(input)
